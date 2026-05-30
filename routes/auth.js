@@ -16,8 +16,11 @@ router.post('/register', (req, res) => {
     if (username.length < 2 || username.length > 20) {
       return res.status(400).json({ error: '用户名 2-20 个字符' });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ error: '密码至少 6 位' });
+    if (password.length < 8) {
+      return res.status(400).json({ error: '密码至少 8 个字符' });
+    }
+    if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+      return res.status(400).json({ error: '密码需包含字母和数字' });
     }
 
     const existing = db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username, email);

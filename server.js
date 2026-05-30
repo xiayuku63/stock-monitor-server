@@ -10,7 +10,8 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(helmet());
-app.use(cors({ origin: process.env.ALLOWED_ORIGINS === '*' ? true : process.env.ALLOWED_ORIGINS.split(',') }));
+var origins = process.env.ALLOWED_ORIGINS || '*';
+app.use(cors({ origin: origins === '*' ? true : origins.split(',') }));
 app.use(express.json({ limit: '1mb' }));
 
 // Health check

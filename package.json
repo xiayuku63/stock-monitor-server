@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Stock Monitor Pro - Cloud Sync Server",
   "main": "server.js",
+  "engines": { "node": ">=18.0.0 <22.0.0" },
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"

@@ -9,9 +9,9 @@ const router = express.Router();
 // POST /api/auth/register
 router.post('/register', (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: '请填写所有字段' });
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: '请填写用户名和密码' });
     }
     if (username.length < 2 || username.length > 20) {
       return res.status(400).json({ error: '用户名 2-20 个字符' });
@@ -23,12 +23,13 @@ router.post('/register', (req, res) => {
       return res.status(400).json({ error: '密码需包含字母和数字' });
     }
 
-    const existing = db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username, email);
+    const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
     if (existing) {
       return res.status(409).json({ error: '用户名或邮箱已存在' });
     }
 
     const hash = bcrypt.hashSync(password, 10);
+    const email = username + '@local';
     const result = db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hash);
 
     const token = jwt.sign(
@@ -37,7 +38,7 @@ router.post('/register', (req, res) => {
       { expiresIn: '30d' }
     );
 
-    res.status(201).json({ token, user: { id: result.lastInsertRowid, username, email } });
+    res.status(201).json({ token, user: { id: result.lastInsertRowid, username } });
   } catch (e) {
     console.error('Register error:', e);
     res.status(500).json({ error: '服务器错误' });
@@ -67,7 +68,7 @@ router.post('/login', (req, res) => {
       { expiresIn: '30d' }
     );
 
-    res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+    res.json({ token, user: { id: user.id, username: user.username } });
   } catch (e) {
     console.error('Login error:', e);
     res.status(500).json({ error: '服务器错误' });
@@ -76,7 +77,7 @@ router.post('/login', (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', auth, (req, res) => {
-  const user = db.prepare('SELECT id, username, email, created_at FROM users WHERE id = ?').get(req.userId);
+  const user = db.prepare('SELECT id, username, created_at FROM users WHERE id = ?').get(req.userId);
   if (!user) return res.status(404).json({ error: '用户不存在' });
   res.json({ user });
 });
